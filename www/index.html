@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unique Bingo — Secure Login</title>
+    
+    
+    <link href="./output.css" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ==================== 3D UNIVERSE STARS BACKGROUND ==================== */
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --accent: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --glass-bg: rgba(15, 23, 42, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.12);
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #050816;
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Universe container with depth layers */
+        .universe {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(236, 72, 153, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(16, 185, 129, 0.08) 0%, transparent 60%),
+                linear-gradient(135deg, #050816 0%, #0a0e27 50%, #0d1129 100%);
+            perspective: 1200px;
+            overflow: hidden;
+        }
+
+        /* Nebula clouds */
+        .nebula {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: nebulaDrift 25s ease-in-out infinite;
+        }
+        .nebula-1 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, #6366f1, transparent);
+            top: -150px; left: -100px;
+        }
+        .nebula-2 {
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, #ec4899, transparent);
+            bottom: -200px; right: -150px;
+            animation-delay: -8s;
+        }
+        .nebula-3 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, #06b6d4, transparent);
+            top: 40%; left: 60%;
+            animation-delay: -15s;
+        }
+        @keyframes nebulaDrift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -30px) scale(1.1); }
+            66% { transform: translate(-30px, 40px) scale(0.95); }
+        }
+
+        /* 3D Starfield canvas */
+        #starfield {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Shooting stars */
+        .shooting-star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px white, 0 0 20px white;
+            animation: shoot 4s linear infinite;
+            opacity: 0;
+        }
+        .shooting-star::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100px;
+            height: 1px;
+            background: linear-gradient(90deg, white, transparent);
+            transform: translateX(-100px);
+        }
+        @keyframes shoot {
+            0% { transform: translate(0, 0) rotate(45deg); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translate(500px, 500px) rotate(45deg); opacity: 0; }
+        }
+
+        /* ==================== GLASS CARD ==================== */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+                0 1px 0 0 rgba(255, 255, 255, 0.1) inset;
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        }
+
+        /* Animated gradient border */
+        .gradient-border {
+            position: relative;
+            background: var(--glass-bg);
+            border-radius: 24px;
+        }
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 24px;
+            padding: 1px;
+            background: linear-gradient(135deg, 
+                rgba(99, 102, 241, 0.5), 
+                rgba(236, 72, 153, 0.3),
+                rgba(16, 185, 129, 0.4));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: borderRotate 8s linear infinite;
+            background-size: 200% 200%;
+        }
+        @keyframes borderRotate {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ==================== INPUT FIELDS ==================== */
+        .form-group {
+            position: relative;
+            margin-bottom: 1.25rem;
+        }
+        .form-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            color: #64748b;
+            pointer-events: none;
+            transition: color 0.3s ease;
+            z-index: 1;
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 3rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: #f1f5f9;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        .input-field::placeholder {
+            color: #64748b;
+        }
+        .input-field:focus {
+            border-color: var(--primary);
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 
+                0 0 0 3px rgba(99, 102, 241, 0.15),
+                0 0 20px rgba(99, 102, 241, 0.1);
+        }
+        .input-field:focus + .input-icon,
+        .input-wrap:focus-within .input-icon {
+            color: var(--primary);
+        }
+
+        /* Password visibility toggle */
+        .toggle-pwd {
+            position: absolute;
+            right: 1rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            padding: 4px;
+        }
+        .toggle-pwd:hover { color: var(--primary); }
+
+        /* ==================== BUTTONS ==================== */
+        .btn-primary {
+            width: 100%;
+            padding: 0.95rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .btn-primary:hover::before { left: 100%; }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+        }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ==================== CHECKBOX ==================== */
+        .checkbox-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            user-select: none;
+        }
+        .checkbox-wrap input { display: none; }
+        .checkbox-custom {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .checkbox-wrap input:checked + .checkbox-custom {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        .checkbox-wrap input:checked + .checkbox-custom::after {
+            content: '';
+            width: 5px; height: 9px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            margin-bottom: 2px;
+        }
+
+        /* ==================== TITLE ==================== */
+        .brand-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+        .brand-title .accent-r { color: #f87171; -webkit-text-fill-color: #f87171; }
+        .brand-title .accent-b { color: #4ade80; -webkit-text-fill-color: #4ade80; }
+
+        .brand-subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        /* ==================== MODAL ==================== */
+        .modal-backdrop {
+            background: rgba(5, 8, 22, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-animate { animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* ==================== TOAST NOTIFICATIONS ==================== */
+        #toastContainer {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-width: 400px;
+            width: calc(100% - 3rem);
+        }
+        .toast {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .toast.removing { animation: toastOut 0.3s ease-in forwards; }
+        .toast-success { border-left: 4px solid var(--success); }
+        .toast-error { border-left: 4px solid var(--danger); }
+        .toast-warning { border-left: 4px solid var(--warning); }
+        .toast-info { border-left: 4px solid var(--primary); }
+
+        .toast-icon {
+            flex-shrink: 0;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .toast-success .toast-icon { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .toast-error .toast-icon { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .toast-warning .toast-icon { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .toast-info .toast-icon { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+
+        .toast-content { flex: 1; }
+        .toast-title { font-weight: 600; margin-bottom: 2px; }
+        .toast-message { color: #94a3b8; font-size: 0.85rem; }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            padding: 0;
+            font-size: 18px;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .toast-close:hover { color: #e2e8f0; }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0; left: 0;
+            height: 2px;
+            background: currentColor;
+            opacity: 0.5;
+            animation: toastProgress 5s linear forwards;
+        }
+        .toast-success .toast-progress { background: var(--success); }
+        .toast-error .toast-progress { background: var(--danger); }
+        .toast-warning .toast-progress { background: var(--warning); }
+        .toast-info .toast-progress { background: var(--primary); }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes toastOut {
+            to { opacity: 0; transform: translateX(100%); }
+        }
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        /* ==================== FORGOT PASSWORD PANEL ==================== */
+        .forgot-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
+            opacity: 0;
+        }
+        .forgot-panel.open {
+            max-height: 500px;
+            opacity: 1;
+            margin-top: 1.5rem;
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 640px) {
+            .brand-title { font-size: 2rem; }
+            .glass-card { border-radius: 20px; }
+            #toastContainer { 
+                top: 1rem; 
+                right: 1rem; 
+                left: 1rem;
+                max-width: none;
+                width: auto;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0e27; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Link styles */
+        .link-text {
+            color: var(--primary);
+            cursor: pointer;
+            transition: color 0.2s;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .link-text:hover { color: #818cf8; text-decoration: underline; }
+
+        /* Security badge */
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #34d399;
+            font-weight: 500;
+        }
+        .security-badge .dot {
+            width: 6px; height: 6px;
+            background: #34d399;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .flex-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== UNIVERSE BACKGROUND ==================== -->
+    <div class="universe">
+        <div class="nebula nebula-1"></div>
+        <div class="nebula nebula-2"></div>
+        <div class="nebula nebula-3"></div>
+        <canvas id="starfield"></canvas>
+        <div class="shooting-star" style="top: 10%; left: 20%; animation-delay: 2s;"></div>
+        <div class="shooting-star" style="top: 30%; left: 60%; animation-delay: 7s;"></div>
+        <div class="shooting-star" style="top: 60%; left: 10%; animation-delay: 12s;"></div>
+    </div>
+
+    <!-- ==================== TOAST CONTAINER ==================== -->
+    <div id="toastContainer"></div>
+
+    <!-- ==================== VERIFICATION MODAL ==================== -->
+    <div id="verificationModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4" style="display: none;">
+        <div class="glass-card gradient-border modal-animate w-full max-w-md">
+            
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-white/10">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-indigo-500/20">
+                        <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">System Verification</h3>
+                        <p class="text-sm text-slate-400">Secure activation required</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6">
+                <p class="text-slate-300 mb-5 text-center text-sm">
+                    Enter the administrator verification password to activate this installation.
+                </p>
+                
+                <!-- Verification Form -->
+                <form id="verifyForm">
+                    <div class="form-group">
+                        <label class="form-label">Admin Password</label>
+                        <div class="input-wrap">
+                            <svg class="input-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            <input type="password" 
+                                   id="verify_password" 
+                                   name="verify_password" 
+                                   class="input-field" 
+                                   placeholder="Enter activation password" 
+                                   required
+                                   autofocus>
+                            <button type="button" class="toggle-pwd" onclick="togglePassword(this, 'verify_password')">
+                                <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">
+                        <span class="btn-text">Verify & Activate</span>
+                    </button>
+                </form>
+                
+                <div class="mt-4 flex items-center justify-center gap-2 text-xs text-slate-500">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    <span>First-time activation • Hardware-locked license</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN LOGIN ==================== -->
+    <div class="relative z-10 min-h-screen flex items-center justify-center p-4 py-8">
+        <div class="w-full max-w-md">
+            
+            <!-- Brand Header -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-pink-500 shadow-lg shadow-indigo-500/30">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
+                    </svg>
+                </div>
+                <h1 class="brand-title">
+                    <span class="accent-r">U</span>nique <span class="accent-b">B</span>ingo
+                </h1>
+                <p class="brand-subtitle">Sign in to your secure gaming account</p>
+                <div class="security-badge">
+                    <span class="dot"></span>
+                    Hardware-Verified Security
+                </div>
+            </div>
+
+            <!-- Login Card -->
+            <div class="glass-card gradient-border p-7 sm:p-8">
+                <form id="loginForm">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address</label>
+                        <div class="input-wrap">
+                            <svg class="input-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            <input type="text" 
+                                   id="email" 
+                                   name="email" 
+                                   class="input-field" 
+                                   placeholder="you@example.com" 
+                                   required
+                                   autocomplete="email">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <div class="input-wrap">
+                            <svg class="input-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            <input type="password" 
+                                   id="password" 
+                                   name="password" 
+                                   class="input-field" 
+                                   placeholder="Enter your password" 
+                                   required
+                                   autocomplete="current-password">
+                            <button type="button" class="toggle-pwd" onclick="togglePassword(this, 'password')">
+                                <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-row">
+                        <label class="checkbox-wrap">
+                            <input type="checkbox" id="remember" name="remember">
+                            <span class="checkbox-custom"></span>
+                            <span class="text-sm text-slate-400">Remember me</span>
+                        </label>
+                        <span class="link-text" id="forget">Forgot password?</span>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary" id="loginBtn">
+                        <span class="btn-text">Sign In</span>
+                    </button>
+                </form>
+
+                <!-- Forgot Password Panel (collapsible) -->
+                <div class="forgot-panel" id="forgotPanel">
+                    <div class="pt-4 border-t border-white/10">
+                        <form id="seclogin" class="mt-4">
+                            <label class="form-label">Reset Email</label>
+                            <div class="input-wrap mb-3">
+                                <svg class="input-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                                <input type="text" id="secemail" class="input-field" placeholder="Enter your email">
+                            </div>
+                            <button type="submit" class="btn-primary">
+                                <span class="btn-text">Send Reset Link</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-6 text-xs text-slate-500">
+                <p>© 2026 Unique Bingo. All rights reserved.</p>
+                <p class="mt-1">Protected by hardware-locked encryption</p>
+            </div>
+        </div>
+    </div>
+    <div id="setupFlow" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" style="display:none;">
+        <div class="glass-card gradient-border modal-animate w-full max-w-md p-6 text-center">
+
+            <div id="adminStage">
+            <h3 class="text-lg font-bold text-white mb-2">Admin Setup</h3>
+            <p class="text-slate-400 text-sm mb-4">Enter the setup password to continue.</p>
+            <input type="password" id="adminPwInput" class="input-field mb-3" placeholder="Setup password">
+            <button id="adminPwBtn" class="btn-primary">Continue</button>
+            <p id="adminPwMsg" class="text-sm mt-3 text-red-400"></p>
+            </div>
+
+            <div id="uploadStage" style="display:none;">
+            <h3 class="text-lg font-bold text-white mb-2">Upload Database</h3>
+            <p class="text-slate-400 text-sm mb-4">Select the database file for this installation.</p>
+            <input type="file" id="dbFileInput" class="input-field mb-3" accept=".bin">
+            <button id="uploadDbBtn" class="btn-primary">Upload & Install</button>
+            <p id="uploadMsg" class="text-sm mt-3 text-slate-400"></p>
+            </div>
+
+        </div>
+    </div>
+    
+    <script>
+        // ==================== 3D STARFIELD ANIMATION ====================
+        (function() {
+            const canvas = document.getElementById('starfield');
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+            let w, h;
+            let mouseX = 0, mouseY = 0;
+            let centerX, centerY;
+
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+                centerX = w / 2;
+                centerY = h / 2;
+                initStars();
+            }
+
+            function initStars() {
+                stars = [];
+                const numStars = Math.floor((w * h) / 3000);
+                for (let i = 0; i < numStars; i++) {
+                    stars.push({
+                        x: (Math.random() - 0.5) * w * 2,
+                        y: (Math.random() - 0.5) * h * 2,
+                        z: Math.random() * w,
+                        size: Math.random() * 1.5 + 0.5,
+                        color: getStarColor()
+                    });
+                }
+            }
+
+            function getStarColor() {
+                const colors = [
+                    'rgba(255, 255, 255, ',
+                    'rgba(200, 220, 255, ',
+                    'rgba(255, 220, 200, ',
+                    'rgba(200, 255, 240, ',
+                    'rgba(255, 200, 240, '
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            function draw() {
+                ctx.fillStyle = 'rgba(5, 8, 22, 0.2)';
+                ctx.fillRect(0, 0, w, h);
+
+                const speed = 0.5;
+                
+                for (let i = 0; i < stars.length; i++) {
+                    const star = stars[i];
+                    star.z -= speed;
+                    
+                    if (star.z <= 0) {
+                        star.x = (Math.random() - 0.5) * w * 2;
+                        star.y = (Math.random() - 0.5) * h * 2;
+                        star.z = w;
+                        star.color = getStarColor();
+                    }
+
+                    // Parallax based on mouse
+                    const parallaxX = (mouseX - centerX) * 0.02;
+                    const parallaxY = (mouseY - centerY) * 0.02;
+
+                    const k = 128 / star.z;
+                    const px = star.x * k + centerX + parallaxX * (1 - star.z / w) * 50;
+                    const py = star.y * k + centerY + parallaxY * (1 - star.z / w) * 50;
+
+                    if (px >= 0 && px < w && py >= 0 && py < h) {
+                        const size = star.size * (1 - star.z / w) * 2;
+                        const opacity = 1 - star.z / w;
+                        
+                        // Star glow
+                        ctx.beginPath();
+                        ctx.arc(px, py, size * 2, 0, Math.PI * 2);
+                        ctx.fillStyle = star.color + (opacity * 0.1) + ')';
+                        ctx.fill();
+                        
+                        // Star core
+                        ctx.beginPath();
+                        ctx.arc(px, py, size, 0, Math.PI * 2);
+                        ctx.fillStyle = star.color + opacity + ')';
+                        ctx.fill();
+                    }
+                }
+
+                requestAnimationFrame(draw);
+            }
+
+            window.addEventListener('resize', resize);
+            window.addEventListener('mousemove', function(e) {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            resize();
+            draw();
+        })();
+
+        // ==================== TOAST NOTIFICATION SYSTEM ====================
+        const ToastIcons = {
+            success: '✓',
+            error: '✕',
+            warning: '!',
+            info: 'i'
+        };
+
+        const ToastTitles = {
+            success: 'Success',
+            error: 'Error',
+            warning: 'Warning',
+            info: 'Information'
+        };
+
+        function showToast(type, message, title, duration = 5000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${ToastIcons[type]}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title || ToastTitles[type]}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="removeToast(this.parentElement)">&times;</button>
+                <div class="toast-progress" style="animation-duration: ${duration}ms;"></div>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Auto-remove
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    removeToast(toast);
+                }
+            }, duration);
+        }
+
+        function removeToast(toast) {
+            if (!toast || !toast.parentElement) return;
+            toast.classList.add('removing');
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.parentElement.removeChild(toast);
+                }
+            }, 300);
+        }
+
+        // ==================== PASSWORD VISIBILITY TOGGLE ====================
+        function togglePassword(btn, inputId) {
+            const input = document.getElementById(inputId) || document.querySelector(`[name="${inputId}"]`);
+            if (!input) return;
+            
+            const icon = btn.querySelector('.eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
+            } else {
+                input.type = 'password';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+            }
+        }
+
+        // ==================== FORGOT PASSWORD TOGGLE ====================
+        document.getElementById('forget').addEventListener('click', function() {
+            const panel = document.getElementById('forgotPanel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) {
+                showToast('info', 'Enter your email to receive a reset link.', 'Password Reset');
+                setTimeout(() => {
+                    const emailInput = document.getElementById('secemail');
+                    if (emailInput) emailInput.focus();
+                }, 400);
+            }
+        });
+
+        // ==================== FORM SUBMISSION WITH LOADING ====================
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (!email || !password) {
+                showToast('warning', 'Please fill in all fields.', 'Missing Information');
+                return;
+            }
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email) && !email.match(/^[a-zA-Z0-9_]+$/)) {
+                showToast('warning', 'Please enter a valid email or username.', 'Invalid Input');
+                return;
+            }
+            
+            // Show loading
+            const btn = document.getElementById('loginBtn');
+            const btnText = btn.querySelector('.btn-text');
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="btn-loading"></span> Signing in...';
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('success', data.message, 'Login Successful');
+                    setTimeout(() => {
+                        window.location.href = 'newgame.html';
+                    }, 1500);
+                } else {
+                    showToast('error', data.error, 'Login Failed');
+                    btn.disabled = false;
+                    btnText.innerHTML = '<span class="btn-text">Sign In</span>';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showToast('error', 'Failed to connect to server', 'Connection Error');
+                btn.disabled = false;
+                btnText.innerHTML = '<span class="btn-text">Sign In</span>';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', async function() {
+        const statusRes = await fetch('/api/setup/status');
+        const status = await statusRes.json();
+
+        if (!status.dbExists) {
+            document.getElementById('setupFlow').style.display = 'flex';
+
+            document.getElementById('adminPwBtn').addEventListener('click', async () => {
+                const pw = document.getElementById('adminPwInput').value;
+                const res = await fetch('/api/setup/verify-admin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pw })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('adminStage').style.display = 'none';
+                    document.getElementById('uploadStage').style.display = 'block';
+                } else {
+                    document.getElementById('adminPwMsg').textContent = data.error;
+                }
+            });
+
+            document.getElementById('uploadDbBtn').addEventListener('click', async () => {
+                const fileInput = document.getElementById('dbFileInput');
+                const msg = document.getElementById('uploadMsg');
+                if (!fileInput.files.length) {
+                    msg.textContent = 'Please select a file.';
+                    return;
+                }
+                msg.textContent = 'Uploading...';
+
+                const formData = new FormData();
+                formData.append('database', fileInput.files[0]);
+
+                const res = await fetch('/api/setup/upload-db', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (data.success) {
+                    msg.textContent = 'Success — restarting application...';
+                    setTimeout(() => window.electronAPI.relaunchApp(), 500);
+                } else {
+                    msg.textContent = data.error;
+                }
+            });
+
+            return; // don't run the rest of the page's normal startup logic yet
+        }
+
+        // ---- your existing verification/login logic continues here, exactly as before ----
+        const response = await fetch('/api/verification-status');
+        // ... unchanged
+});
+
+        // ==================== SECONDARY LOGIN (RESET) FORM ====================
+        const seclogin = document.getElementById('seclogin');
+        if (seclogin) {
+            seclogin.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('secemail').value.trim();
+                if (!email) {
+                    showToast('warning', 'Please enter your email address.', 'Required Field');
+                    return;
+                }
+                showToast('success', 'If the email exists, a reset link has been sent.', 'Reset Requested', 4000);
+                document.getElementById('secemail').value = '';
+                setTimeout(() => {
+                    document.getElementById('forgotPanel').classList.remove('open');
+                }, 1500);
+            });
+        }
+
+        // ==================== INITIALIZE APP ====================
+        document.addEventListener('DOMContentLoaded', async function() {
+            const statusRes = await fetch('/api/setup/status');
+            const status = await statusRes.json();
+
+            if (!status.dbExists) {
+                document.getElementById('setupFlow').style.display = 'flex';
+
+                document.getElementById('adminPwBtn').addEventListener('click', async () => {
+                    const pw = document.getElementById('adminPwInput').value;
+                    const res = await fetch('/api/setup/verify-admin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: pw })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        document.getElementById('adminStage').style.display = 'none';
+                        document.getElementById('uploadStage').style.display = 'block';
+                    } else {
+                        document.getElementById('adminPwMsg').textContent = data.error;
+                    }
+                });
+
+                document.getElementById('uploadDbBtn').addEventListener('click', async () => {
+                    const fileInput = document.getElementById('dbFileInput');
+                    const msg = document.getElementById('uploadMsg');
+                    if (!fileInput.files.length) {
+                        msg.textContent = 'Please select a file.';
+                        return;
+                    }
+                    msg.textContent = 'Uploading...';
+
+                    const formData = new FormData();
+                    formData.append('database', fileInput.files[0]);
+
+                    const res = await fetch('/api/setup/upload-db', { method: 'POST', body: formData });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        msg.textContent = 'Success — restarting application...';
+                        setTimeout(() => window.electronAPI.relaunchApp(), 1500);
+                    } else {
+                        msg.textContent = data.error;
+                    }
+                });
+
+                return; // stop here — don't fall through to login/verification logic below
+            }
+
+            // ---- Setup already done — original verification/login flow ----
+            const response = await fetch('/api/verification-status');
+            const verification = await response.json();
+
+            if (verification.is_verified === 1) {
+                const sessionResponse = await fetch('/api/session-check');
+                const sessionData = await sessionResponse.json();
+
+                if (sessionData && sessionData.hardware_verified) {
+                    const loginResponse = await fetch('/api/session-check');
+                    const loginData = await loginResponse.json();
+
+                    if (loginData && loginData.logged_in) {
+                        window.location.href = 'newgame.html';
+                    }
+                }
+            } else {
+                showVerificationModal();
+            }
+        });
+
+
+        // ==================== VERIFICATION MODAL ====================
+        async function showVerificationModal() {
+            const modal = document.getElementById('verificationModal');
+            modal.style.display = 'flex';
+        }
+
+        // Handle verification form submission
+        document.getElementById('verifyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('button[type="submit"]');
+            const btnText = btn.querySelector('.btn-text');
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="btn-loading"></span> Verifying...';
+            
+            const password = document.querySelector('input[name="verify_password"]').value;
+            
+            try {
+                const response = await fetch('/api/hardware-verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('success', data.message, 'Verification Successful');
+                    setTimeout(() => {
+                        window.location.href = 'newgame.html';
+                    }, 1500);
+                } else {
+                    showToast('error', data.error, 'Verification Failed');
+                    btn.disabled = false;
+                    btnText.innerHTML = '<span class="btn-text">Verify & Activate</span>';
+                }
+            } catch (error) {
+                console.error('Verification error:', error);
+                showToast('error', 'Failed to connect to server', 'Connection Error');
+                btn.disabled = false;
+                btnText.innerHTML = '<span class="btn-text">Verify & Activate</span>';
+            }
+        });
+    </script>
+</body>
+</html>

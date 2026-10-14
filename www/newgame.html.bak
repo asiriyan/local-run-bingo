@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Unique Bingo — 3D Agent Select</title>
+
+    <script>
+    // Apply the saved theme immediately, before any CSS/JS/network work below runs,
+    // so the page never flashes light-then-dark and always matches whatever was
+    // last chosen on the dashboard (shared 'theme' key).
+    (function () {
+        try {
+            var saved = localStorage.getItem('theme');
+            var isDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (isDark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+    })();
+    </script>
+
+    <link rel="stylesheet" href="../distcss/output.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', system-ui, sans-serif;
+            transition: background 0.4s ease, color 0.3s ease;
+        }
+        body {
+            background: #d8dde5;
+            color: #0f172a;
+        }
+        .dark body {
+            background: #0b0f1a;
+            color: #f1f5f9;
+        }
+
+        #three-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+        #three-container canvas {
+            display: block;
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+
+        .app-wrapper {
+            position: relative;
+            z-index: 10;
+            height: 100vh;
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            padding: 0.35rem 0.45rem;
+            overflow: hidden;
+            gap: 0.35rem;
+        }
+
+        .glass {
+            background: rgba(255,255,255,0.62);
+            backdrop-filter: blur(16px) saturate(1.6);
+            -webkit-backdrop-filter: blur(16px) saturate(1.6);
+            border: 1px solid rgba(255,255,255,0.35);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .dark .glass {
+            background: rgba(15,23,42,0.7);
+            border-color: rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+
+        .letter-u {
+            color: #ef4444;
+            text-shadow: 0 0 8px rgba(239,68,68,0.4);
+            font-weight: 900;
+        }
+        .dark .letter-u {
+            color: #f87171;
+            text-shadow: 0 0 18px rgba(248,113,113,0.8), 0 0 40px rgba(248,113,113,0.35);
+        }
+        .letter-b {
+            color: #22c55e;
+            text-shadow: 0 0 8px rgba(34,197,94,0.4);
+            font-weight: 900;
+        }
+        .dark .letter-b {
+            color: #4ade80;
+            text-shadow: 0 0 18px rgba(74,222,128,0.8), 0 0 40px rgba(74,222,128,0.35);
+        }
+        .brand-text {
+            color: #1e293b;
+        }
+        .dark .brand-text {
+            color: #e2e8f0;
+            text-shadow: 0 0 6px rgba(226,232,240,0.15);
+        }
+
+        .info-row {
+            flex-shrink: 0;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.4rem;
+        }
+        .info-card {
+            border-radius: 0.8rem;
+            padding: 0.4rem 0.5rem 0.35rem;
+            text-align: center;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+        }
+        .info-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+            animation: shimmer 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes shimmer {
+            0%, 100% { left: -100%; }
+            50% { left: 140%; }
+        }
+        @keyframes cardPulse {
+            0%, 100% { box-shadow: 0 4px 18px rgba(0,0,0,0.22); }
+            50% { box-shadow: 0 4px 28px rgba(0,0,0,0.3), 0 0 16px var(--card-glow); }
+        }
+        .info-card { animation: cardPulse 3s ease-in-out infinite; }
+
+        .info-card-game   { background: linear-gradient(135deg, #7c3aed, #5b21b6); --card-glow: rgba(124,58,237,0.4); }
+        .info-card-stake  { background: linear-gradient(135deg, #f59e0b, #b45309); --card-glow: rgba(245,158,11,0.4); }
+        .info-card-line   { background: linear-gradient(135deg, #ec4899, #be185d); --card-glow: rgba(236,72,153,0.4); }
+        .info-card-players{ background: linear-gradient(135deg, #10b981, #047857); --card-glow: rgba(16,185,129,0.4); }
+
+        .info-card .info-label {
+            font-size: clamp(0.48rem, 1.1vw, 0.65rem);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.9;
+            line-height: 1.2;
+        }
+        .info-card .info-value {
+            font-size: clamp(0.85rem, 2.4vw, 1.35rem);
+            font-weight: 900;
+            line-height: 1.3;
+        }
+        .info-card .info-input {
+            width: 100%;
+            text-align: center;
+            font-size: clamp(0.85rem, 2.4vw, 1.35rem);
+            font-weight: 900;
+            line-height: 1.3;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 0.35rem;
+            color: #fff;
+            outline: none;
+            padding: 0 0.3rem;
+        }
+        .info-card .info-input:focus {
+            border-color: rgba(255,255,255,0.6);
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
+        }
+        .info-card .info-input option {
+            background: #1e293b; color: #fff;
+        }
+        select.info-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='white' d='M5 7L1 3h8z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 5px center;
+            padding-right: 1rem;
+            cursor: pointer;
+        }
+        input[type="number"].info-input::-webkit-inner-spin-button,
+        input[type="number"].info-input::-webkit-outer-spin-button {
+            opacity: 0.4;
+        }
+
+        .grid-section {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .grid-wrapper {
+            flex: 1;
+            min-height: 0;
+            container-type: size;
+            container-name: gridbox;
+        }
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            gap: clamp(2px, 0.4vw, 4px);
+            width: 100%;
+            height: 100%;
+        }
+        .num-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: clamp(0.5rem, 1.6vh, 1.1rem);
+            border-radius: clamp(0.25rem, 0.5vw, 0.5rem);
+            cursor: pointer;
+            transition: all 0.15s cubic-bezier(0.34,1.56,0.64,1);
+            background: rgba(226,232,240,0.75);
+            color: rgba(15,23,42,0.75);
+            user-select: none;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            position: relative;
+        }
+        .dark .num-box {
+            background: rgba(30,41,59,0.7);
+            color: rgba(241,245,249,0.7);
+            border-color: rgba(255,255,255,0.06);
+        }
+        .num-box:hover {
+            transform: scale(1.08) translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124,58,237,0.3);
+            border-color: rgba(124,58,237,0.5);
+            z-index: 2;
+        }
+        .num-box.selected {
+            background: linear-gradient(135deg, #f87171, #ef4444) !important;
+            color: #fff !important;
+            transform: scale(1.03);
+            box-shadow: 0 4px 16px rgba(239,68,68,0.5);
+            border-color: #ef4444;
+        }
+        .dark .num-box.selected {
+            background: linear-gradient(135deg, #f87171, #dc2626) !important;
+            box-shadow: 0 4px 20px rgba(220,38,38,0.55);
+        }
+        .num-box .num-label {
+            font-size: inherit;
+            font-weight: 700;
+            line-height: 1;
+            pointer-events: none;
+            transition: font-size 0.15s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .num-box.selected .num-label {
+            font-size: 1.4em;
+        }
+        @container gridbox (min-height: 300px) {
+            .num-box { font-size: clamp(0.6rem, 1.8vh, 1.15rem); }
+        }
+        @container gridbox (min-height: 500px) {
+            .num-box { font-size: clamp(0.7rem, 2vh, 1.2rem); }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: #fff;
+            font-weight: 700;
+            padding: 0.45rem 1.2rem;
+            border-radius: 0.7rem;
+            border: none;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 20px rgba(124,58,237,0.3);
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(124,58,237,0.5);
+        }
+        .btn-primary:active { transform: scale(0.97); }
+        .btn-primary:disabled {
+            opacity: 0.4; cursor: not-allowed;
+            transform: none !important;
+            box-shadow: 0 4px 12px rgba(124,58,237,0.15) !important;
+        }
+        .btn-secondary {
+            background: rgba(226,232,240,0.7);
+            color: #0f172a;
+            font-weight: 700;
+            padding: 0.45rem 1.2rem;
+            border-radius: 0.7rem;
+            border: 1px solid rgba(255,255,255,0.25);
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .dark .btn-secondary {
+            background: rgba(30,41,59,0.6);
+            color: #f1f5f9;
+            border-color: rgba(255,255,255,0.06);
+        }
+        .btn-secondary:hover { transform: translateY(-2px); }
+        .status-text {
+            font-size: clamp(0.5rem, 1.1vw, 0.68rem);
+            color: rgba(100,116,139,0.8);
+        }
+        .dark .status-text {
+            color: rgba(148,163,184,0.7);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 100vh;
+            width: 290px;
+            background: linear-gradient(180deg, rgba(15,23,42,0.96) 0%, rgba(30,20,60,0.97) 50%, rgba(15,23,42,0.96) 100%);
+            backdrop-filter: blur(24px) saturate(1.8);
+            -webkit-backdrop-filter: blur(24px) saturate(1.8);
+            border-right: 1px solid rgba(124,58,237,0.15);
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.22,1,0.36,1);
+            z-index: 1000;
+            padding: 0;
+            color: #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .sidebar.open { transform: translateX(0); }
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: -40%; left: -30%;
+            width: 160%; height: 60%;
+            background: radial-gradient(ellipse, rgba(124,58,237,0.08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .sidebar::after {
+            content: '';
+            position: absolute;
+            bottom: -20%; right: -20%;
+            width: 80%; height: 40%;
+            background: radial-gradient(ellipse, rgba(236,72,153,0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .sidebar .close-btn {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #94a3b8;
+            width: 2rem; height: 2rem;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+        .sidebar .close-btn:hover {
+            background: rgba(239,68,68,0.2);
+            color: #f87171;
+            border-color: rgba(239,68,68,0.3);
+        }
+        .sidebar-header {
+            position: relative;
+            z-index: 1;
+            padding: 1.5rem 1.25rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .sidebar-header .brand-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 0.5rem;
+        }
+        .sidebar-header .brand-icon {
+            width: 2.5rem; height: 2.5rem;
+            border-radius: 0.7rem;
+            background: linear-gradient(135deg, #7c3aed, #ec4899);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 16px rgba(124,58,237,0.4);
+            animation: float 4s ease-in-out infinite;
+        }
+        .sidebar-header .brand-name {
+            font-size: 1.35rem; font-weight: 900; letter-spacing: -0.02em;
+        }
+        .sidebar-header .brand-sub {
+            font-size: 0.6rem; text-transform: uppercase;
+            letter-spacing: 0.15em; color: rgba(148,163,184,0.6); font-weight: 600;
+        }
+        .sidebar-nav {
+            position: relative; z-index: 1;
+            flex: 1; padding: 0.75rem 0.75rem; overflow-y: auto;
+        }
+        .nav-section-label {
+            font-size: 0.58rem; text-transform: uppercase;
+            letter-spacing: 0.14em; color: rgba(148,163,184,0.4);
+            font-weight: 700; padding: 0.6rem 0.75rem 0.35rem;
+        }
+        .sidebar nav ul { list-style: none; }
+        .sidebar nav ul li a {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.65rem 0.75rem; border-radius: 0.65rem;
+            color: rgba(203,213,225,0.85); transition: all 0.25s ease;
+            font-weight: 600; font-size: 0.85rem;
+            position: relative; overflow: hidden; text-decoration: none;
+        }
+        .sidebar nav ul li a .nav-icon {
+            width: 1.75rem; height: 1.75rem; border-radius: 0.45rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; flex-shrink: 0; transition: all 0.25s;
+        }
+        .nav-icon-default {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .sidebar nav ul li a:hover {
+            color: #fff; background: rgba(124,58,237,0.12);
+        }
+        .sidebar nav ul li a:hover .nav-icon { transform: scale(1.1); }
+        .sidebar nav ul li a.active {
+            color: #fff;
+            background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(236,72,153,0.15));
+            box-shadow: 0 0 20px rgba(124,58,237,0.15);
+        }
+        .sidebar nav ul li a.active .nav-icon {
+            background: linear-gradient(135deg, #7c3aed, #ec4899);
+            box-shadow: 0 3px 12px rgba(124,58,237,0.4); border: none;
+        }
+        .sidebar nav ul li a.active::before {
+            content: ''; position: absolute;
+            left: 0; top: 15%; bottom: 15%; width: 3px;
+            border-radius: 0 3px 3px 0;
+            background: linear-gradient(180deg, #7c3aed, #ec4899);
+            box-shadow: 0 0 8px rgba(124,58,237,0.5);
+        }
+        .nav-badge {
+            margin-left: auto; font-size: 0.6rem; font-weight: 800;
+            padding: 0.15rem 0.45rem; border-radius: 999px;
+            background: linear-gradient(135deg, #7c3aed, #ec4899);
+            color: #fff; box-shadow: 0 2px 8px rgba(124,58,237,0.3);
+        }
+        .sidebar-footer {
+            position: relative; z-index: 1;
+            padding: 0.75rem; border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .sidebar-footer .profile-card {
+            display: flex; align-items: center; gap: 0.65rem;
+            padding: 0.6rem 0.65rem; border-radius: 0.75rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.25s; cursor: pointer;
+        }
+        .sidebar-footer .profile-card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(124,58,237,0.2);
+        }
+        .profile-avatar {
+            width: 2rem; height: 2rem; border-radius: 50%;
+            background: linear-gradient(135deg, #7c3aed, #ec4899);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 0.75rem; color: #fff;
+            flex-shrink: 0; box-shadow: 0 2px 10px rgba(124,58,237,0.35);
+        }
+        .profile-info { flex: 1; min-width: 0; }
+        .profile-name {
+            font-size: 0.75rem; font-weight: 700; color: #e2e8f0;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .profile-role {
+            font-size: 0.58rem; color: rgba(148,163,184,0.6); font-weight: 500;
+        }
+        .sidebar-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(6px);
+            z-index: 999; opacity: 0; pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .sidebar-overlay.active { opacity: 1; pointer-events: all; }
+
+        .theme-toggle {
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 9999px; padding: 0.25rem 0.55rem;
+            display: flex; align-items: center; gap: 0.35rem;
+            cursor: pointer; transition: all 0.3s;
+            color: #0f172a; font-size: 0.8rem; font-weight: 600;
+            backdrop-filter: blur(8px);
+        }
+        .dark .theme-toggle {
+            color: #f1f5f9; background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.06);
+        }
+        .theme-toggle:hover { transform: scale(1.04); }
+        .dark .theme-toggle .icon-sun { display: none; }
+        .theme-toggle .icon-moon { display: none; }
+        .dark .theme-toggle .icon-moon { display: block; }
+
+        /* Hamburger: explicit colors instead of relying on inherited currentColor,
+           so it stays visible in both themes regardless of what wraps it. */
+        .hamburger {
+            display: flex; flex-direction: column; gap: 4px;
+            background: none; border: none; padding: 0.25rem; cursor: pointer;
+        }
+        .hamburger span {
+            display: block; width: 20px; height: 2.5px;
+            border-radius: 999px; background: #0f172a; transition: all 0.3s;
+        }
+        .dark .hamburger span {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #7c3aed88; border-radius: 999px; }
+
+        .bump-anim { animation: bump 0.25s ease; }
+        @keyframes bump {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        #bonus-popup {
+            position: fixed;
+            top: 14px; left: 50%;
+            transform: translateX(-50%) translateY(-16px);
+            z-index: 2000;
+            background: rgba(15,23,42,0.94);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(124,58,237,0.35);
+            border-radius: 0.9rem;
+            padding: 0.65rem 1.1rem;
+            color: #f1f5f9;
+            box-shadow: 0 12px 34px rgba(0,0,0,0.45);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease, transform 0.35s ease;
+            max-width: 92vw;
+        }
+        #bonus-popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        #bonus-popup .bonus-popup-title {
+            font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #c4b5fd; margin-bottom: 0.35rem;
+        }
+        #bonus-popup ul { list-style: none; display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; }
+        #bonus-popup li { font-size: 0.72rem; font-weight: 700; white-space: nowrap; color: #e2e8f0; }
+        #bonus-popup li b { color: #fbbf24; font-weight: 800; }
+    </style>
+</head>
+<body>
+
+    <div id="three-container"></div>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+    <div id="bonus-popup"></div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside id="sidebar" class="sidebar">
+        <button class="close-btn" id="closeSidebar">✕</button>
+        <div class="sidebar-header">
+            <div class="brand-row">
+                <div class="brand-icon">🎰</div>
+                <div>
+                    <div class="brand-name">
+                        <span class="letter-u">U</span><span style="color:#e2e8f0">nique </span><span class="letter-b">B</span><span style="color:#e2e8f0">ingo</span>
+                    </div>
+                    <div class="brand-sub">3D Agent Platform</div>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-nav">
+            <nav>
+                <div class="nav-section-label">Main</div>
+                <ul>
+                    <li><a href="#" class="active">
+                        <span class="nav-icon" style="background:linear-gradient(135deg,#7c3aed,#ec4899);box-shadow:0 3px 12px rgba(124,58,237,0.4);">🎰</span>
+                        Play Bingo <span class="nav-badge">LIVE</span>
+                    </a></li>
+                    <li><a href="dash.html"><span class="nav-icon nav-icon-default">📊</span> Dashboard</a></li>
+                    <li><a href="#"><span class="nav-icon nav-icon-default">🏆</span> Win Cartela <span class="nav-badge" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">HOT</span></a></li>
+                </ul>
+                <div class="nav-section-label" style="margin-top:0.5rem;">Account</div>
+                <ul>
+                    <li><a href="#"><span class="nav-icon nav-icon-default">👁️</span> Views</a></li>
+                    <li><a href="#"><span class="nav-icon nav-icon-default">💳</span> Transactions</a></li>
+                    <li><a href="#"><span class="nav-icon nav-icon-default">⚙️</span> Settings</a></li>
+                </ul>
+                <div class="nav-section-label" style="margin-top:0.5rem;">Session</div>
+                <ul>
+                    <li><a href="#" id="signoutBtn"><span class="nav-icon nav-icon-default">🚪</span> Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="sidebar-footer">
+            <div class="profile-card">
+                <div class="profile-avatar">A</div>
+                <div class="profile-info">
+                    <div class="profile-name">Agent</div>
+                    <div class="profile-role">Online</div>
+                </div>
+                <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.5);flex-shrink:0;"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===== APP WRAPPER ===== -->
+    <div class="app-wrapper">
+
+        <header class="flex-shrink-0 w-full flex items-center justify-between glass rounded-xl px-3 py-1">
+            <div class="flex items-center gap-2">
+                <button class="hamburger" id="menuBtn" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+                <h1 class="text-base sm:text-lg md:text-xl font-black tracking-tight whitespace-nowrap">
+                    <span class="letter-u">U</span><span class="brand-text">nique </span><span class="letter-b">B</span><span class="brand-text">ingo</span>
+                </h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="themeToggle" class="theme-toggle">
+                    <span class="icon-sun">☀️</span>
+                    <span class="icon-moon">🌙</span>
+                </button>
+                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-brand-purple to-brand-pink flex items-center justify-center text-white font-bold text-xs shadow-lg">A</div>
+            </div>
+        </header>
+
+        <!-- Info Cards Row -->
+        <div class="info-row">
+            <div class="info-card info-card-game">
+                <div class="info-label">🎯 Game</div>
+                <div class="info-value" id="gameDisplay">...</div>
+                <input type="hidden" id="game" value="1" />
+            </div>
+            <div class="info-card info-card-stake">
+                <div class="info-label">💰 Stake</div>
+                <input type="number" id="stake" class="info-input" value="10" min="1" step="1" />
+            </div>
+            <div class="info-card info-card-line">
+                <div class="info-label">📏 Line</div>
+                <select id="line" class="info-input">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
+            </div>
+            <div class="info-card info-card-players">
+                <div class="info-label">👥 Players</div>
+                <div class="info-value" id="noplayerDisplay">0</div>
+                <input type="hidden" id="noplayer" value="0" />
+            </div>
+        </div>
+
+        <!-- Grid Section -->
+        <div class="grid-section glass rounded-xl p-1.5">
+            <div class="grid-wrapper">
+                <div id="numberGrid" class="number-grid"></div>
+            </div>
+        </div>
+
+        <!-- Action Row -->
+        <div class="action-row">
+            <div class="flex gap-2 mb-1">
+                <button id="startButton" class="btn-primary flex-1 flex items-center justify-center gap-1.5 text-xs sm:text-sm" disabled>
+                    🚀 Start Game
+                </button>
+                <button id="clearButton" class="btn-secondary flex-1 flex items-center justify-center gap-1.5 text-xs sm:text-sm">
+                    🧹 Clear
+                </button>
+            </div>
+            <div class="flex items-center justify-between status-text px-1">
+                <span>Selected: <strong id="selectedCount">0</strong></span>
+                <span>Total: <strong id="totalStake">0</strong></span>
+                <span class="hidden sm:inline">🎯 Tap to select</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        // ================================================================
+        //  1. THREE.JS — 3D BINGO CAGE BACKGROUND
+        // ================================================================
+        (function initThree() {
+            const container = document.getElementById('three-container');
+            if (!container) return;
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xcdd2db);
+
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1.5, 8);
+            camera.lookAt(0, 0, 0);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            const ambient = new THREE.AmbientLight(0x404060, 0.5);
+            scene.add(ambient);
+            const keyLight = new THREE.DirectionalLight(0xffeedd, 1.2);
+            keyLight.position.set(4, 6, 4);
+            keyLight.castShadow = true;
+            scene.add(keyLight);
+            const fillLight = new THREE.DirectionalLight(0x4488ff, 0.6);
+            fillLight.position.set(-4, 2, -4);
+            scene.add(fillLight);
+            const rimLight = new THREE.DirectionalLight(0xff66aa, 0.4);
+            rimLight.position.set(-2, -3, 6);
+            scene.add(rimLight);
+
+            const cageRadius = 2.6;
+            const cageGeo = new THREE.SphereGeometry(cageRadius, 24, 18);
+            const cageMat = new THREE.MeshBasicMaterial({
+                wireframe: true, color: 0x7c3aed,
+                transparent: true, opacity: 0.25,
+            });
+            const cage = new THREE.Mesh(cageGeo, cageMat);
+            cage.position.y = 0.2;
+            scene.add(cage);
+
+            for (let i = 0; i < 12; i++) {
+                const theta = (i / 12) * Math.PI * 2;
+                const ringGeo = new THREE.RingGeometry(cageRadius - 0.02, cageRadius + 0.02, 48);
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: 0x7c3aed, transparent: true, opacity: 0.08, side: THREE.DoubleSide,
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = Math.PI / 2;
+                ring.rotation.z = theta;
+                ring.position.y = 0.2;
+                scene.add(ring);
+            }
+
+            const ballGroup = new THREE.Group();
+            ballGroup.position.y = 0.2;
+            scene.add(ballGroup);
+
+            const ballCount = 60;
+            const ballGeo = new THREE.SphereGeometry(0.18, 16, 16);
+            const colors = [0xf87171, 0xfbbf24, 0x34d399, 0x60a5fa, 0xa78bfa, 0xf472b6, 0xfb923c];
+            const balls = [];
+
+            for (let i = 0; i < ballCount; i++) {
+                const mat = new THREE.MeshStandardMaterial({
+                    color: colors[i % colors.length],
+                    roughness: 0.3, metalness: 0.1,
+                    emissive: colors[i % colors.length],
+                    emissiveIntensity: 0.08,
+                });
+                const mesh = new THREE.Mesh(ballGeo, mat);
+                const r = cageRadius * 0.75 * Math.cbrt(Math.random());
+                const t = Math.random() * Math.PI * 2;
+                const p = Math.acos(2 * Math.random() - 1);
+                mesh.position.set(r * Math.sin(p) * Math.cos(t), r * Math.cos(p), r * Math.sin(p) * Math.sin(t));
+                mesh.castShadow = true;
+                mesh.userData = { rotSpeed: 0.005 + Math.random() * 0.015 };
+                ballGroup.add(mesh);
+                balls.push(mesh);
+            }
+
+            const particleCount = 400;
+            const particleGeo = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount; i++) {
+                const r = 5 + Math.random() * 10;
+                const t = Math.random() * Math.PI * 2;
+                const p = Math.acos(2 * Math.random() - 1);
+                positions[i * 3] = r * Math.sin(p) * Math.cos(t);
+                positions[i * 3 + 1] = r * Math.cos(p) * 0.4;
+                positions[i * 3 + 2] = r * Math.sin(p) * Math.sin(t);
+            }
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const particleMat = new THREE.PointsMaterial({
+                color: 0x7c3aed, size: 0.05,
+                transparent: true, opacity: 0.5,
+                blending: THREE.AdditiveBlending, sizeAttenuation: true,
+            });
+            const particles = new THREE.Points(particleGeo, particleMat);
+            scene.add(particles);
+
+            const glowRingGeo = new THREE.RingGeometry(2.8, 3.6, 48);
+            const glowRingMat = new THREE.MeshBasicMaterial({
+                color: 0x7c3aed, transparent: true, opacity: 0.06, side: THREE.DoubleSide,
+            });
+            const glowRing = new THREE.Mesh(glowRingGeo, glowRingMat);
+            glowRing.rotation.x = -Math.PI / 2;
+            glowRing.position.y = -1.2;
+            scene.add(glowRing);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                cage.rotation.y += 0.002;
+                cage.rotation.x += 0.0005;
+                ballGroup.rotation.y += 0.0015;
+                ballGroup.rotation.x += 0.0004;
+                balls.forEach((b) => {
+                    b.rotation.x += b.userData.rotSpeed;
+                    b.rotation.y += b.userData.rotSpeed * 0.7;
+                });
+                particles.rotation.y += 0.0002;
+                particles.rotation.x += 0.0001;
+                glowRingMat.opacity = 0.04 + 0.03 * Math.sin(Date.now() * 0.001);
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            function updateThreeTheme() {
+                const isDark = document.documentElement.classList.contains('dark');
+                scene.background = new THREE.Color(isDark ? 0x0b0f1a : 0xcdd2db);
+                cageMat.color.setHex(isDark ? 0x7c3aed : 0x6d28d9);
+                particleMat.color.setHex(isDark ? 0x7c3aed : 0x6d28d9);
+                glowRingMat.color.setHex(isDark ? 0x7c3aed : 0x6d28d9);
+            }
+            const observer = new MutationObserver(() => updateThreeTheme());
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+            updateThreeTheme();
+        })();
+
+
+        // ================================================================
+        //  2. APP LOGIC — Merged with original PHP backend data flow
+        // ================================================================
+
+        // ---- DOM refs ----
+        const gameInput = document.getElementById('game');
+        const gameDisplay = document.getElementById('gameDisplay');
+        const stakeInput = document.getElementById('stake');
+        const noplayerInput = document.getElementById('noplayer');
+        const noplayerDisplay = document.getElementById('noplayerDisplay');
+        const lineSelect = document.getElementById('line');
+        const gridContainer = document.getElementById('numberGrid');
+        const startBtn = document.getElementById('startButton');
+        const clearBtn = document.getElementById('clearButton');
+        const selectedCountSpan = document.getElementById('selectedCount');
+        const totalStakeSpan = document.getElementById('totalStake');
+        const menuBtn = document.getElementById('menuBtn');
+        const sidebar = document.getElementById('sidebar');
+        const closeSidebar = document.getElementById('closeSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const signoutBtn = document.getElementById('signoutBtn');
+        const themeToggle = document.getElementById('themeToggle');
+
+        // ---- State (matching original variable names) ----
+        let allSelected = [];
+        let allSelectedFiltered = [];
+        let stakeamount = 0;
+        let cash = 0;
+        let earn = 0;
+        let players = 0;
+        let lineNo = 1;
+        let commissionRate = 0.20; // fallback until fetched — matches the old hardcoded 0.2
+
+        async function loadAgentSettings() {
+            try {
+                const r = await fetch('/api/get-bonus-settings', { headers: { 'Accept': 'application/json' } });
+                const d = await r.json();
+                if (d && d.success && d.settings) {
+                    if (d.settings.commission_rate !== undefined) {
+                        commissionRate = Number(d.settings.commission_rate) || 0.20;
+                    }
+                    showActiveBonusPopup(d.settings);
+                }
+            } catch (e) { /* keep 0.20 commission fallback, skip popup if unreachable */ }
+        }
+
+        function showActiveBonusPopup(s) {
+            const items = [];
+            if (Number(s.four_call_bonus_enabled))    items.push(`⚡ 4-Call: <b>${s.four_call_bonus_amount} birr</b>`);
+            if (Number(s.eight_call_bonus_enabled))   items.push(`⚡ 8-Call: <b>${s.eight_call_bonus_amount} birr</b>`);
+            if (Number(s.edge_diagonal_bonus_enabled)) items.push(`💎 Corner + Diagonal: <b>${s.edge_diagonal_bonus_amount} birr</b>`);
+            if (Number(s.row_column_bonus_enabled))   items.push(`💎 Row + Column: <b>${s.row_column_bonus_amount} birr</b>`);
+            if (Number(s.free_bingo_enabled))         items.push(`🎁 Free Bingo: <b>${s.free_bingo_amount} birr</b> (${s.free_bingo_call_threshold} calls)`);
+            if (Number(s.happy_hour_enabled))         items.push(`🎉 Happy Hour: <b>${s.happy_hour_min_amount}–${s.happy_hour_max_amount} birr</b>`);
+
+            if (items.length === 0) return;
+
+            const popup = document.getElementById('bonus-popup');
+            popup.innerHTML = `<div class="bonus-popup-title">🎁 Active Bonuses Today</div><ul>${items.map(i => `<li>${i}</li>`).join('')}</ul>`;
+            popup.classList.add('show');
+            setTimeout(() => popup.classList.remove('show'), 5000);
+        }
+
+        // ================================================================
+        //  ORIGINAL: Clear localStorage on page load (preserve theme)
+        // ================================================================
+        (function clearLocalStoragePreserveTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            localStorage.clear();
+            if (savedTheme) localStorage.setItem('theme', savedTheme);
+        })();
+
+        // ================================================================
+        //  ORIGINAL: Cookie helper functions (exact original API)
+        // ================================================================
+
+        // Set cookie with HOURS expiry (used for cash, amountline)
+        function seCookie(name, value, hours) {
+            let date = new Date();
+            date.setTime(date.getTime() + (hours * 60 * 60 * 1000));
+            document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/`;
+        }
+
+        // Get cookie by name (returns raw string)
+        function geCookie(name) {
+            let cookies = document.cookie.split("; ");
+            for (let cookie of cookies) {
+                let [key, value] = cookie.split("=");
+                if (key === name) return value;
+            }
+            return null;
+        }
+
+        // Delete cookie
+        function deleteCookie(cookieName) {
+            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        }
+
+        // Set array cookie with DAYS expiry (used for allSelectedFiltered)
+        function setarray(name, array, days) {
+            const jsonArray = JSON.stringify(array);
+            let expires = "";
+            if (days) {
+                let date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = `${name}=${jsonArray}${expires}; path=/;`;
+        }
+
+        // Get array cookie by name (returns parsed array or null)
+        function getarray(name) {
+            let cookies = document.cookie.split('; ');
+            for (let cookie of cookies) {
+                let [key, value] = cookie.split('=');
+                if (key === name) {
+                    try { return JSON.parse(value); } catch(e) { return null; }
+                }
+            }
+            return null;
+        }
+
+        // ================================================================
+        //  ORIGINAL: SQL API — Fetch game number from PHP backend
+        // ================================================================
+        class SQLAPI {
+    constructor() {
+        this.baseURL = './'; // current folder
+        console.log('🔗 Base URL:', this.baseURL);
+    }
+
+    async getLastGameNumber() {
+        try {
+            console.log('📊 Fetching last game number from database...');
+
+            // ✅ Use new API endpoint
+            const response = await fetch('/api/getlastgame');
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const text = await response.text();
+            console.log('📥 Raw response:', text.substring(0, 200));
+
+            try {
+                const data = JSON.parse(text);
+                console.log('🎮 Game data from database:', data);
+                return data;
+            } catch (e) {
+                console.error('❌ JSON parse error:', e);
+                return { success: true, lastGame: 0, _fallback: true };
+            }
+        } catch (error) {
+            console.error('❌ Error fetching game number:', error);
+            return { success: true, lastGame: 0, _fallback: true, error: error.message };
+        }
+    }
+}
+
+
+        const sqlAPI = new SQLAPI();
+
+        // Get next game number from database
+        async function getGameFromDatabase() {
+            try {
+                const data = await sqlAPI.getLastGameNumber();
+
+                if (data && data.success) {
+                    if (data.hasData === true && data.game !== undefined) {
+                        const lastGame = Number(data.game);
+                        const nextGame = lastGame + 1;
+                        console.log(`📊 Database has data: last game = ${lastGame}, next game = ${nextGame}`);
+                        return nextGame;
+                    } else {
+                        console.log('📊 No data for today, defaulting to game 1');
+                        return 1;
+                    }
+                } else {
+                    console.log('📊 Database error, defaulting to game 1');
+                    return 1;
+                }
+            } catch (error) {
+                console.error('❌ Error, defaulting to game 1:', error);
+                return 1;
+            }
+        }
+
+        // ================================================================
+        //  ORIGINAL: Stake calculation (with <=39 threshold logic)
+        // ================================================================
+        function stake() {
+            console.log('🎰 Calculating stake for:', allSelectedFiltered);
+            if (!stakeInput) return;
+
+            let amount = (stakeInput.value * allSelectedFiltered.length);
+            cash = (stakeInput.value * 2 / 2); // Same as stakeInput.value
+            players = allSelectedFiltered.length;
+
+            console.log('💰 Stake calculation:', { amount, cash, players });
+
+            if (amount <= 39) {
+                stakeamount = (stakeInput.value * allSelectedFiltered.length).toFixed(1);
+                earn = 0;
+            } else {
+                // Winner gets (1 - commissionRate) of the pool; agent's cut is commissionRate — both agent-configurable from the dashboard.
+                stakeamount = (stakeInput.value * allSelectedFiltered.length * (1 - commissionRate));
+                earn = (stakeInput.value * allSelectedFiltered.length * commissionRate).toFixed(1);
+            }
+
+            console.log('💵 Final stake:', { stakeamount, earn });
+        }
+
+        // ================================================================
+        //  Load state from cookies (original behavior)
+        // ================================================================
+        function loadState() {
+            // Load selections from cookie
+            const saved = getarray("allSelectedFiltered");
+            if (saved && Array.isArray(saved)) {
+                allSelected = [...saved];
+                allSelectedFiltered = [...saved];
+            } else {
+                allSelected = [];
+                allSelectedFiltered = [];
+            }
+
+            // Load stake from cookie (raw string value)
+            const stakeVal = geCookie("cash");
+            if (stakeVal) stakeInput.value = stakeVal;
+
+            // Load line from cookie
+            const lineVal = geCookie("amountline");
+            if (lineVal) lineSelect.value = String(lineVal);
+            lineNo = lineSelect.value;
+        }
+
+        // ================================================================
+        //  Save state to cookies (original behavior)
+        // ================================================================
+        function saveState() {
+            setarray("allSelectedFiltered", allSelectedFiltered, 7); // 7 days
+            seCookie("cash", stakeInput.value, 168); // 168 hours = 7 days
+            seCookie("amountline", lineSelect.value, 168);
+        }
+
+        // ================================================================
+        //  Build grid
+        // ================================================================
+        function buildGrid() {
+            gridContainer.innerHTML = '';
+            for (let i = 1; i <= 100; i++) {
+                const div = document.createElement('div');
+                div.className = 'num-box';
+                div.dataset.number = i;
+                const span = document.createElement('span');
+                span.className = 'num-label';
+                span.textContent = i;
+                div.appendChild(span);
+                gridContainer.appendChild(div);
+            }
+            applySelections();
+            updateUI();
+        }
+
+        // ================================================================
+        //  Apply selections to grid
+        // ================================================================
+        function applySelections() {
+            document.querySelectorAll('.num-box').forEach((box) => {
+                const num = parseInt(box.dataset.number);
+                if (allSelectedFiltered.includes(num)) {
+                    box.classList.add('selected');
+                } else {
+                    box.classList.remove('selected');
+                }
+            });
+        }
+
+        // ================================================================
+        //  Update UI counters + calculate stake
+        // ================================================================
+        function updateUI() {
+            const count = allSelectedFiltered.length;
+
+            // Update player count
+            noplayerInput.value = count;
+            noplayerDisplay.textContent = count;
+            noplayerDisplay.classList.remove('bump-anim');
+            void noplayerDisplay.offsetWidth;
+            noplayerDisplay.classList.add('bump-anim');
+
+            selectedCountSpan.textContent = count;
+
+            // Calculate stake using original logic
+            stake();
+
+            // Display total stake amount
+            const stakeVal = parseFloat(stakeInput.value) || 0;
+            const total = stakeVal * count;
+            totalStakeSpan.textContent = total.toFixed(1);
+
+            // Toggle start button
+            startBtn.disabled = count === 0;
+
+            // Sync game display
+            gameDisplay.textContent = gameInput.value;
+
+            // Save to cookies
+            saveState();
+        }
+
+        // ================================================================
+        //  Handle box click (original data flow)
+        // ================================================================
+        function handleBoxClick(e) {
+            const box = e.currentTarget;
+            const num = parseInt(box.dataset.number);
+
+            // Toggle selection
+            const isSelected = box.classList.toggle('selected');
+
+            if (isSelected) {
+                // Add if selected
+                if (!allSelected.includes(num)) {
+                    allSelected.push(num);
+                }
+            } else {
+                // Remove if deselected
+                allSelected = allSelected.filter(n => n !== num);
+            }
+
+            // Update filtered array
+            allSelectedFiltered = [...new Set(allSelected)];
+
+            // Save to localStorage for next page (original behavior)
+            localStorage.setItem('allselected', allSelectedFiltered);
+
+            // Save to cookie
+            setarray("allSelectedFiltered", allSelectedFiltered, 7);
+
+            // Update UI
+            updateUI();
+
+            console.log('📊 Current selection:', allSelectedFiltered);
+        }
+
+        // ================================================================
+        //  Attach grid events
+        // ================================================================
+        function attachGridEvents() {
+            document.querySelectorAll('.num-box').forEach((box) => {
+                box.removeEventListener('click', handleBoxClick);
+                box.addEventListener('click', handleBoxClick);
+            });
+        }
+
+        // ================================================================
+        //  Clear all (original behavior)
+        // ================================================================
+        function clearAll() {
+            console.log('🧹 Clearing all selections');
+
+            // Clear the arrays
+            allSelected = [];
+            allSelectedFiltered = [];
+
+            // Clear all selections visually
+            document.querySelectorAll('.num-box').forEach((b) => b.classList.remove('selected'));
+
+            // Clear cookies
+            deleteCookie("allSelectedFiltered");
+            localStorage.removeItem('allselected');
+
+            // Update UI
+            updateUI();
+
+            console.log('✅ All selections cleared');
+        }
+
+        // ================================================================
+        //  Stake input listener (original: delete old cookie, set new)
+        // ================================================================
+        stakeInput.addEventListener('input', function() {
+            deleteCookie("cash");
+            let stake_value = stakeInput.value;
+            seCookie("cash", stake_value, 168);
+            updateUI();
+        });
+
+        // ================================================================
+        //  Line select listener (original: delete old cookie, set new)
+        // ================================================================
+        lineSelect.addEventListener('change', function() {
+            lineNo = lineSelect.value;
+            deleteCookie("amountline");
+            seCookie("amountline", lineNo, 168);
+            console.log('📏 Line changed to:', lineNo);
+            saveState();
+        });
+
+        // ================================================================
+        //  Start game button (original: save all to localStorage, redirect)
+        // ================================================================
+        startBtn.addEventListener('click', () => {
+            console.log('🚀 START BUTTON CLICKED');
+
+            if (allSelectedFiltered.length === 0) return;
+
+            // Calculate stake
+            stake();
+
+            // Generate unique random number (original logic)
+            const timestamp = Date.now();
+            const randomPart = Math.floor(Math.random() * 10000);
+            const uniqueRandom = parseInt((timestamp.toString() + randomPart.toString()).slice(0, 10));
+
+            console.log('🎲 Generated UNIQUE random for EXE:', uniqueRandom);
+
+            // Save all game data to localStorage (original keys & format)
+            localStorage.setItem('players', players);
+            localStorage.setItem('earn', earn);
+            localStorage.setItem('stakeamount', stakeamount);
+            localStorage.setItem('cash', cash);
+            localStorage.setItem('allselected', allSelectedFiltered);
+
+            const currentGame = gameInput.value || 1;
+            localStorage.setItem('game', currentGame);
+            localStorage.setItem('gameNo', currentGame);
+            localStorage.setItem('randomNumber', uniqueRandom.toString());
+
+            console.log('💾 Game data saved with randomNumber:', uniqueRandom);
+            console.log('📦 Saved data:', {
+                players, earn, stakeamount, cash,
+                allselected: allSelectedFiltered,
+                game: currentGame, randomNumber: uniqueRandom
+            });
+
+            // Redirect to game page (original)
+            window.location.href = 'bingo.html';
+        });
+
+        // ================================================================
+        //  Clear button
+        // ================================================================
+        clearBtn.addEventListener('click', clearAll);
+
+        // ================================================================
+        //  Sidebar
+        // ================================================================
+        function toggleSidebar(open) {
+            sidebar.classList.toggle('open', open);
+            overlay.classList.toggle('active', open);
+        }
+        menuBtn.addEventListener('click', () => toggleSidebar(true));
+        closeSidebar.addEventListener('click', () => toggleSidebar(false));
+        overlay.addEventListener('click', () => toggleSidebar(false));
+
+        // ================================================================
+        //  Sign out (original: clear all, redirect to index.html)
+        // ================================================================
+        signoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Clear local storage and cookies
+            localStorage.clear();
+            // Clear specific cookies
+            deleteCookie("amountline");
+            deleteCookie("allSelectedFiltered");
+            deleteCookie("cash");
+            // Redirect to login page (original)
+            window.location.href = 'index.html';
+        });
+
+        // ================================================================
+        //  Theme toggle
+        // ================================================================
+        function setTheme(dark) {
+            if (dark) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            setTheme(!isDark);
+        });
+
+        // ================================================================
+        //  INIT — Async to fetch game from database
+        // ================================================================
+        async function init() {
+            console.log('🚀 DOM loaded, initializing...');
+
+            // Theme is already applied by the inline <head> script before first paint —
+            // this just keeps the toggle button's own state (and Three.js colors, via its
+            // MutationObserver) in sync; it no longer gates on any network call.
+
+            // Load state from cookies
+            loadState();
+
+            // Fetch the agent's configured commission rate + show the active-bonus popup before any stake math runs
+            await loadAgentSettings();
+
+            // Fetch game number from database (original)
+            const nextGameNumber = await getGameFromDatabase();
+            gameInput.value = nextGameNumber;
+            gameDisplay.textContent = nextGameNumber;
+            gameInput.setAttribute('readonly', true);
+            localStorage.setItem('game', nextGameNumber);
+            localStorage.setItem('gameNo', nextGameNumber);
+            console.log('✅ Game number set to:', nextGameNumber);
+
+            // Build grid and attach events
+            buildGrid();
+            attachGridEvents();
+
+            // Re-apply any saved selections
+            if (allSelectedFiltered.length > 0) {
+                applySelections();
+            }
+
+            updateUI();
+
+            console.log('✅ All initializations complete');
+            console.log('📦 Selected:', allSelectedFiltered);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+
+</body>
+</html>

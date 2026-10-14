@@ -1,0 +1,411 @@
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #1a202c;
+    /* Telegram app background color */
+    --tg-theme-bg-color: #1a202c;
+}
+
+
+/* Image gallery styles */
+.image-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+gap: 15px;
+}
+
+.image-grid img {
+width: 100%;
+height: auto;
+display: block;
+border-radius: 8px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+#sphere-container {
+    width: 270px; /* Set a specific width for the container */
+    height: 270px; 
+    /* Set a specific height */
+        /* A red border to show the container's boundaries */
+}
+#renderCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+.bingo-number {
+    transition: transform 0.1s ease-in-out, background-color 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.bingo-number:active {
+    transform: scale(0.95);
+}
+
+.bingo-board-container {
+    
+    border-radius: 30px;
+    display: inline-block;
+}
+.main-container {
+    display: grid;
+    grid-template-rows: 84%;
+    grid-template-columns: 67% 33%;
+    gap: 5px; /* Adjust gap between the two grids as needed */
+}
+@media screen and (max-width: 768px) {
+    .main-container {
+        display: grid;
+        grid-template-rows: 91%;
+        grid-template-columns: 45% 55%;
+       margin-left: 20px;
+    }
+}
+.message-modal {
+    background-color: #2d3748;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+/* Styles for the single 75-number grid for all screen sizes */
+.left-grid-main {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px;
+}
+.gg{
+    background-color: #20404a;
+    background: radial-gradient(circle at 20% 20%, #ffffff, #ae99cf, #1f2937);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.3);
+}
+.blink {
+    animation: blink-animation 1s infinite, bounce 1s infinite, size-transform 1s infinite;
+    opacity: 1;
+    
+}
+
+.blink-result{
+    animation: blink-animation 1s infinite, bounce 1s infinite, size-transform 1s infinite;
+}
+
+@keyframes blink-animation {
+    50% {
+        background-color: #ffaf00; /* Change background color for blinking effect */
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-30px);
+    }
+    60% {
+        transform: translateY(-15px);
+    }
+}
+
+@keyframes size-transform {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.4); /* Increase size to 120% */
+    }
+}
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+.animate-spin-slow {
+    animation: spin-slow 10s linear infinite;
+}
+.animate-spin-slower {
+  animation: spin-slow 40s linear infinite;
+}
+
+.ball {
+    background: radial-gradient(circle at 20% 20%, #ffffff, #ae99cf, #1f2937);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.3);
+}
+.balled {
+    background: radial-gradient(circle at 20% 20%, #e5ff00, #e5e907, #e0dd0a);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.3);
+    
+    
+}
+.ballen{
+    background: radial-gradient(circle at 20% 20%, #ff0000, #e93407, #e0230a);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.3);
+}
+/* From Uiverse.io by SupportHotline */ 
+.button-container {
+    /* This container will hold both buttons in the same spot */
+    position: relative;
+    
+}
+
+.toggle-button {
+    /* Both buttons are positioned absolutely to overlap perfectly */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* By default, the second button is hidden */
+#secondButton {
+    opacity: 0;
+    pointer-events: none; /* Prevents it from being clickable when hidden */
+}
+.button {
+background: #20404a;
+border-radius: 0.5em;
+box-shadow:
+    inset 0px -6px 18px -6px rgba(3, 15, 20, 0),
+    inset rgba(54, 69, 75, 1) -1px -1px 6px 0px,
+    inset 12px 0px 12px -6px rgba(3, 15, 20, 0),
+    inset -12px 0px 12px -6px rgba(3, 15, 20, 0),
+    rgba(54, 69, 75, 1) -1px -1px 6px 0px;
+border: solid 2px #030f14;
+cursor: pointer;
+font-size: 18px;
+padding: 1px;
+outline: none;
+transition: all 0.3s;
+user-select: none;
+}
+
+.button:hover {
+box-shadow:
+    inset 0px -6px 18px -6px rgba(3, 15, 20, 1),
+    inset 0px 6px 18px -6px rgba(3, 15, 20, 1),
+    inset 12px 0px 12px -6px rgba(3, 15, 20, 0),
+    inset -12px 0px 12px -6px rgba(3, 15, 20, 0),
+    -1px -1px 6px 0px rgba(54, 69, 75, 1);
+}
+
+.button:active {
+box-shadow:
+    inset 0px -12px 12px -6px rgba(3, 15, 20, 1),
+    inset 0px 12px 12px -6px rgba(3, 15, 20, 1),
+    inset 12px 0px 12px -6px rgba(3, 15, 20, 1),
+    inset -12px 0px 12px -6px rgba(3, 15, 20, 1),
+    -1px -1px 6px 0px rgba(54, 69, 75, 1);
+}
+
+.text {
+color: #d0a756;
+font-weight: 700;
+margin: auto;
+transition: all 0.3s;
+width: fit-content;
+}
+
+.button:hover .text {
+transform: scale(0.9);
+}
+
+.button:active .text {
+transform: scale(0.8);
+}
+/* From Uiverse.io by ErzenXz */ 
+/* From Uiverse.io by Galahhad */ 
+.inactive {
+pointer-events: none; /* Disables all interactions */
+opacity: 0.5; /* Makes the section semi-transparent */
+cursor: not-allowed; /* Changes cursor to not-allowed symbol */
+}
+.input {
+max-width: 150px;
+padding: 12px;
+border: none;
+border-radius: 4px;
+box-shadow: 2px 2px 7px 0 rgb(0, 0, 0, 0.2);
+outline: none;
+color: rgb(109, 80, 80);
+}
+
+.input:invalid {
+animation: justshake 0.3s forwards;
+color: red;
+}
+
+@keyframes justshake {
+25% {
+    transform: translateX(5px);
+}
+
+50% {
+    transform: translateX(-5px);
+}
+
+75% {
+    transform: translateX(5px);
+}
+
+100% {
+    transform: translateX-(5px);
+}
+}
+/* From Uiverse.io by Galahhad */ 
+/* level settings 👇 */
+
+/* From Uiverse.io by namecho */ 
+.switch {
+--button-width: 3.5em;
+--button-height: 2em;
+--toggle-diameter: 1.5em;
+--button-toggle-offset: calc((var(--button-height) - var(--toggle-diameter)) / 2);
+--toggle-shadow-offset: 10px;
+--toggle-wider: 3em;
+--color-grey: #cccccc;
+--color-green: #000000;
+}
+
+.slider {
+display: inline-block;
+width: var(--button-width);
+height: var(--button-height);
+background-color: var(--color-grey);
+border-radius: calc(var(--button-height) / 2);
+position: relative;
+transition: 0.3s all ease-in-out;
+}
+
+.slider::after {
+content: "";
+display: inline-block;
+width: var(--toggle-diameter);
+height: var(--toggle-diameter);
+background-color: #cfcc21;
+border-radius: calc(var(--toggle-diameter) / 2);
+position: absolute;
+top: var(--button-toggle-offset);
+transform: translateX(var(--button-toggle-offset));
+box-shadow: var(--toggle-shadow-offset) 0 calc(var(--toggle-shadow-offset) * 4) rgba(0, 0, 0, 0.1);
+transition: 0.3s all ease-in-out;
+}
+
+.switch input[type="checkbox"]:checked + .slider {
+background-color: var(--color-green);
+}
+
+.switch input[type="checkbox"]:checked + .slider::after {
+transform: translateX(calc(var(--button-width) - var(--toggle-diameter) - var(--button-toggle-offset)));
+box-shadow: calc(var(--toggle-shadow-offset) * -1) 0 calc(var(--toggle-shadow-offset) * 4) rgba(0, 0, 0, 0.1);
+}
+
+.switch input[type="checkbox"] {
+display: none;
+}
+
+.switch input[type="checkbox"]:active + .slider::after {
+width: var(--toggle-wider);
+}
+
+.switch input[type="checkbox"]:checked:active + .slider::after {
+transform: translateX(calc(var(--button-width) - var(--toggle-wider) - var(--button-toggle-offset)));
+}
+.hidden {
+    opacity: 0;
+    /* Using visibility prevents the element from being interactive after it fades */
+    visibility: hidden;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+}
+
+
+/* From Uiverse.io by Galahhad */ 
+/* level settings 👇 */
+
+.slider {
+  /* slider */
+  --slider-width: 100%;
+  --slider-height: 6px;
+  --slider-bg: rgb(82, 82, 82);
+  --slider-border-radius: 999px;
+  /* level */
+  --level-color: #fff;
+  --level-transition-duration: .1s;
+  /* icon */
+  --icon-margin: 15px;
+  --icon-color: var(--slider-bg);
+  --icon-size: 25px;
+}
+
+.sliderr {
+  cursor: pointer;
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: reverse;
+  -ms-flex-direction: row-reverse;
+  flex-direction: row-reverse;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.sliderr .volume {
+  display: inline-block;
+  vertical-align: top;
+  margin-right: var(--icon-margin);
+  color: var(--icon-color);
+  width: var(--icon-size);
+  height: auto;
+}
+
+.sliderr .level {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: var(--slider-width);
+  height: var(--slider-height);
+  background: var(--slider-bg);
+  overflow: hidden;
+  border-radius: var(--slider-border-radius);
+  -webkit-transition: height var(--level-transition-duration);
+  -o-transition: height var(--level-transition-duration);
+  transition: height var(--level-transition-duration);
+  cursor: inherit;
+}
+
+.sliderr .level::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 0;
+  height: 0;
+  -webkit-box-shadow: -200px 0 0 200px var(--level-color);
+  box-shadow: -200px 0 0 200px var(--level-color);
+}
+
+.sliderr:hover .level {
+  height: calc(var(--slider-height) * 2);
+}
+#loading-bar-container {
+  width: 100%;
+  height: 20px;
+  background-color: #ddd;
+  margin-top: 20px;
+  position: relative;
+  display: none;
+}
+
+#loading-bar {
+  height: 100%;
+  width: 0%;
+  background-color: #4caf50;
+  transition: width 0.2s ease;
+  display: none;
+}

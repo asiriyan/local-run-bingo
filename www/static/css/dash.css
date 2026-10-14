@@ -1,0 +1,574 @@
+* {
+    margin:0;
+    padding:0;
+    font-family: sans-serif;
+    box-sizing: border-box;
+}
+body{
+    width: 100%;
+    background-color: #E5E7EB;
+    position: relative;
+    display: flex;
+}
+#menu{
+    background-color: #111827;
+    width: 300px;
+    height: 100%;
+    left:0;
+    top:0;
+    position: fixed;
+    display: none;
+    
+   
+
+}
+#menu.active{
+    display: inline;
+    width: calc(100%-270px);
+    
+}
+#interface.activate{
+    margin:0;
+    left:0;
+    width:100%;
+    transition: 0.4s ease;
+
+}
+#menu .logo {
+    display: flex;
+    text-align: center;
+    align-items: center;
+    padding:30px 0 0 20px;
+    color:#fff
+}
+#menu .logo img{
+    width:40px;
+    border-radius: 100%;
+    margin-right: 10px;
+}
+#menu .items {
+    margin-top: 30px;
+
+}
+#menu .items li {
+    list-style: none;
+    padding: 15px ;
+    transition: 0.3s ease;
+}
+#menu .items li:hover {
+    background-color: #253047;
+    
+}
+#menu .items li a:hover{
+    cursor:pointer;
+}
+#menu .items li:nth-child(1){
+    border-left: 4px solid #fff;
+}
+#menu .items li:hover i,
+#menu .items li:hover a
+{
+    color:#F3F4F6
+}
+#menu .items li i {
+    color: rgb(134, 140, 150);
+    width:30px;
+    height: 20px;
+    line-height: 30px;
+    text-align: center;
+    font-size: 15px;
+    margin: 0 10px 0 10px;
+}
+#menu .items li a {
+    text-decoration: none;
+    color: rgb(134,141, 151);
+    font-weight: bold;
+    transition: 0.3s ease;
+}
+#interface{
+    width:calc(100%-300px);
+    margin-left:300px;
+    transition: 0.5s ease;
+}
+
+#interface .navigation {
+     display: flex;
+     background-color: #fff;
+     align-items: center;
+     padding: 20px 30px;
+     justify-content: space-between;
+     border-bottom: 3px solid #594ef7;
+     position: sticky;
+     width:100%;
+     margin-bottom:30px;
+
+     
+     
+}
+#interface .navigation .search{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding:10px 15px;
+    border:2px solid black;
+    border-radius: 20px;
+    
+}
+#interface .navigation .search input{
+    border:none;
+   outline: none;
+   font-size:15px
+}
+#interface .navigation .search button{
+    border:none;
+   outline: none;
+   font-size:10px;
+   font-weight: 700;
+   padding:7px;
+   border-radius: 10px;
+   background-color: #444a53;
+   color:#fff;
+   margin-left: 20px;
+}
+#interface .navigation .search i{
+    margin-right: 10px;
+}
+#interface .navigation .profile{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    position: absolute;
+    right:15%;
+    top:20%;
+    margin-right: 100px;
+}
+#interface .navigation .n1{
+    display: flex;
+    justify-content:flex-start;
+    align-items: center;
+}
+#menu-btn{
+    color: #2b2b2b;
+    font-size: 30px;
+    cursor: pointer;
+    border-radius: 50%;
+    margin-right:30px;
+    background-color: #2e4cad;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    padding: 0px 5px 0px 10px ;
+}
+#interface .navigation .profile i{
+    margin-right: 20px;
+    font-size:30px;
+    font-weight: 400;
+}
+#interface .navigation .profile img {
+    width:30px;
+    height: 30px;
+}
+.i-name {
+    color: #444a53;
+    padding: 30px 30px 0px 30px;
+    font-size:30px;
+    font-weight: 700;
+    margin-top:100px;
+    
+}
+
+
+.values {
+    padding:30px 30px 0 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    
+}
+.values .val-box{
+    background-color:#fff;
+    padding:15px 20px ;
+    width: 300px;
+    height: 150px;
+    border-radius: 10px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    margin:10px 40px 10px 10px;
+}
+.values .val-box:hover{
+    transform: translateY(-10px);
+    transform: scale(1.11);
+    background-color: #444a53;
+    color:wheat
+}
+.values .val-box i {
+    font-size:25px;
+    
+    border-radius: 50%;
+    line-height: 60px;
+    text-align: center;
+    color:#000000;
+    
+    
+    margin-right: 10px;
+    
+
+}
+.values .val-box:nth-child(1) i{
+    background-color: chartreuse;
+    width: 20%;
+    height: 20%px;
+}
+.values .val-box:nth-child(2) i{
+    background-color: #7874Ec;
+    width: 20%;
+    height: 20%px;
+}
+.values .val-box:nth-child(3) i{
+    background-color: #E45D99;
+    width: 60px;
+    height: 20%px;
+    margin-left: 30px;
+}
+.values .val-box:nth-child(4) i{
+    background-color: #dee205;
+    width: 60px;
+    height: 20%px;
+    margin-left: 30px;
+}
+.values .val-box h3{
+    font-size:20px;
+    font-weight: 600;
+    margin-right:30px;
+    margin-left: 50px;
+}
+.values .val-box span{
+    font-size: 25px;
+    color:#828997;
+    position: relative;
+    top:30%;
+    right:25%;
+    font-weight: 800;
+    
+}
+.button-event{
+    
+    opacity : 0.3;
+}
+.nodata{
+    font-size: 50px;
+    font-weight: 800;
+    text-align: center;
+}
+#interface #success-message{
+    margin: 20px;
+    left:5%;
+    font-size: 30px;
+    font-weight: 700;
+    color:green;
+    display: none;
+}
+#interface #error-message{
+    margin: 20px;
+    left:5%;
+    font-size: 30px;
+    font-weight: 700;
+    color:red;
+    display:none
+}
+
+
+@media (max-width:769px) {
+    #menu {
+        
+        width: 270px;
+        left:-270px;
+        
+        
+    }
+    #menu.active{
+        display: inline;
+        left: 0;
+        
+    }
+    
+    
+    #interface {
+        width: (100%-250px);
+        margin-left: 270px;
+        transition: 0.5s ease;
+        
+    }
+    #interface .navigation .profile{
+        display: none;
+    } 
+    #interface.activate{
+        width:100%;
+        transition: 0.5s ease;
+    }
+    .values.val-box {
+        padding: 15px 15px;
+        margin:10px 10px;
+        display: block;
+    }
+    .board{
+        width: 90%;;
+        padding:0;
+        overflow-x: auto;
+    }
+}
+
+.wrapper{
+    width: min(900px, 100% -3rem);
+    margin-inline: auto;
+}
+table {
+    background-color: #323232;
+    padding: 1 rem;  
+    border-collapse: collapse;
+    width:90%;
+    color:#eee;
+    font-size:1.125 rem;
+    line-height: 1.5;
+    border-radius: 20PX;
+    margin: 50px;
+       
+}
+
+th, td {
+ padding: 1rem;   
+}
+caption, 
+th {
+    text-align: left;
+}
+caption{
+    background: hsl(0 0% 0%);
+    font-size:1 rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    
+    margin-bottom: 40px;
+    padding:2rem;
+    border-radius: 20px;
+
+}
+th{
+    background: hsl(0, 0%, 0%, 0.5);
+    color: white;
+    font-size:1.34rem;
+    font-weight: 600;
+    text-align: center;
+
+}
+tr:nth-of-type(2n){
+    background: hsl(0 0% 50% / 0.1);
+}
+td{
+    font-size: 1.2rem;
+    font-weight: 800;
+    text-align: center;
+    
+}
+.nodata{
+    padding:50px;
+    font-weight: 800;
+    font-size: 30px;
+    margin:20px
+}
+/* From Uiverse.io by alexruix */ 
+/* From Uiverse.io by vinodjangid07 */
+.InputContainer {
+    width: 210px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(to bottom,rgb(227, 213, 255),rgb(255, 231, 231));
+    border-radius: 30px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.075);
+    margin-left: 40px;
+  }
+  
+.input {
+    width: 400px;
+    height: 40px;
+    border: none;
+    outline: none;
+    caret-color: rgb(255, 81, 0);
+    background-color: rgb(255, 255, 255);
+    border-radius: 30px;
+    padding-left: 15px;
+    letter-spacing: 0.8px;
+    color: rgb(19, 19, 19);
+    font-size: 13.4px;
+  }
+  #interface .fixed .para{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 25px;
+    font-weight: 700;
+    position: relative;
+    left:35%
+  }
+  #interface .fixed .alter{
+    margin:10px;
+    background-color: rgb(0, 0, 0);
+    color:#fff;
+    padding:10px;
+    position: relative;
+    left: 32%;
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 700;
+    border:none;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+  #interface .fixed  .alter:hover{
+    background-color: #594ef7;
+  }
+  #interface .fixed .papa .altered:hover{
+    background-color:#594ef7
+  }
+  #interface .fixed .papa{
+    display: flex;
+    
+  }
+  #interface .fixed .papa .altered{
+    margin:10px;
+    background-color: rgb(0, 0, 0);
+    color:#fff;
+    padding:10px;
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 700;
+    border:none;
+    border-radius: 20px;
+    position: relative;
+    left:2%;
+    cursor:pointer
+  }
+  #interface .fixed .papa #inputvalue{
+    margin: 15px;
+    position: relative;
+    left:14%;
+    padding: 10px 20px 10px 20px;
+    position: relative;
+    left:10%;
+  }
+  #interface .fixed .para{
+    font-size: 20px;
+    position: relative;
+    left:35%;
+    margin: 10px 20px 10px 10px;
+  }
+  #interface .fixed .paraw{
+    font-size: 20px;
+    position: relative;
+    left:5%;
+    font-weight: 800;
+    margin-left:28px;
+  }
+  #interface .last #toget{
+    display: none;
+
+
+    
+    margin-left:5px
+  }
+ #interface #dada{
+    display: flex;
+    margin: 10px;
+ }
+ #interface  #dada #inputed{
+    margin: 15px;
+    position: relative;
+    left:14%;
+    padding: 10px 20px 10px 20px;
+    position: relative;
+    left:10%;
+  }
+ #interface #dada .altered{
+    margin:10px;
+    background-color: rgb(0, 0, 0);
+    color:#fff;
+    padding:10px;
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 700;
+    border:none;
+    border-radius: 20px;
+    position: relative;
+    left:10.1%;
+    cursor:pointer
+ }
+ #interface #dada .altered:active{
+    background-color: #665de4;
+    transform: scale(0.8);
+ }
+
+ #interface .parad{
+    font-size: 20px;
+    position: relative;
+    left:5%;
+    font-weight: 800;
+    margin-left:28px;
+    display: block;
+    margin-top: 40px;
+  }
+  #interface .last  #toget .total{
+    margin:20px;
+    border:none;
+    border-radius: 15px;
+    background-color: #ffffff;
+    padding:15px;
+    font-size: 30px;
+    font-weight: 800;
+    display: inline;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    left:5%;
+    
+
+  }
+ @media (max-width:880px){
+    #interface .last #toget .total{
+        display:block;
+        margin:10px;
+        width:70%;
+    }
+    
+    table{
+        margin:20px 20px 40px 20px;
+    }
+    td{
+        display: block;
+        padding: 0.5rem 1rem;
+    }
+    th{
+        display: none;
+    }
+    td:first-child{
+        padding-top:2rem;
+        
+    }
+    td:last-child{
+        padding-bottom:2rem;
+        
+    }
+    td::before {
+        content:attr(data-cell) ":  ";
+        font-weight: 700;
+        text-transform: capitalize;
+        
+
+    }
+    #interface #dada {
+        display:block;
+    }
+ }
